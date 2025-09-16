@@ -50,13 +50,10 @@ That is, CI will be activated only when you have MR to `dev` or `main`.
 
 Example: build_vote
 
-A Docker image is built for the vote service
-
-It only executed when the files in `vote/**/*` have changed and MR is on `dev` or `main`
-
-The same logic applies to result and worker.
-
-This means that only the service that has changed is built, not all services.
+* A Docker image is built for the vote service
+* It only executed when the files in `vote/**/*` have changed and MR is on `dev` or `main`
+* The same logic applies to result and worker.
+* This means that only the service that has changed is built, not all services.
 
 #### Test Stage Overview
 
