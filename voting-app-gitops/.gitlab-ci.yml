@@ -23,6 +23,7 @@ stages:
 variables:
   DOCKER_DRIVER: overlay2
   REGISTRY: myreg.example.ir
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
 
 test_vote:
   image: python:3.11
@@ -98,7 +99,7 @@ trivy_vote:
 build_vote:
   stage: build
   script:
-    - docker build -t $REGISTRY/vote:v1 ./vote
+    - docker build -t $REGISTRY/vote:$IMAGE_TAG ./vote
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -113,7 +114,7 @@ build_vote:
 build_result:
   stage: build
   script:
-    - docker build -t $REGISTRY/result:v1 ./result
+    - docker build -t $REGISTRY/result:$IMAGE_TAG ./result
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -128,7 +129,7 @@ build_result:
 build_worker:
   stage: build
   script:
-    - docker build -t $REGISTRY/worker:v1 ./worker
+    - docker build -t $REGISTRY/worker:$IMAGE_TAG ./worker
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -145,7 +146,7 @@ push_vote:
   before_script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY -u "$NEXUS_USER" --password-stdin
   script:
-    - docker push $REGISTRY/vote:v1
+    - docker push $REGISTRY/vote:$IMAGE_TAG
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -162,7 +163,7 @@ push_result:
   before_script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY -u "$NEXUS_USER" --password-stdin
   script:
-    - docker push $REGISTRY/result:v1
+    - docker push $REGISTRY/result:$IMAGE_TAG
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
@@ -179,7 +180,7 @@ push_worker:
   before_script:
     - echo "$NEXUS_PASSWORD" | docker login $REGISTRY -u "$NEXUS_USER" --password-stdin
   script:
-    - docker push $REGISTRY/worker:v1
+    - docker push $REGISTRY/worker:$IMAGE_TAG
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
