@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: docker.rahbia.iamsre.ir/vote
+  tag: v1
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  targetPort: 80
+  nodePort: 31000
+
+imagePullSecrets:
+  - name: docker-rahbia-regcred

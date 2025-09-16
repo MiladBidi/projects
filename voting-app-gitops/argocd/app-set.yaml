@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: voting-environments
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            path: k8s-specifications/dev
+            server: https://kubernetes.default.svc
+            namespace: voting-dev
+          - env: prod
+            path: k8s-specifications/prod
+            server: https://10.20.20.31:6443
+            namespace: voting-prod
+
+  template:
+    metadata:
+      name: '{{env}}-voting-app'
+    spec:
+      project: default
+      source:
+        repoURL: https://git.rahbia.iamsre.ir/iamsre/voting-app.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: '{{server}}'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated: {}

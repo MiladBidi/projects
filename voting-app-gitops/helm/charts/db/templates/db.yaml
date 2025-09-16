@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  labels:
+    app: db
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.env.POSTGRES_USER }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.env.POSTGRES_PASSWORD }}"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: db-data
+      volumes:
+        - name: db-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    app: db
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: "db-service"
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+  selector:
+    app: db

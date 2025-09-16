@@ -1,0 +1,9 @@
+replicaCount: 1
+
+image:
+  repository: docker.rahbia.iamsre.ir/worker
+  tag: v1
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: docker-rahbia-regcred
