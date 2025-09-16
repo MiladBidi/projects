@@ -16,12 +16,84 @@ default:
     - my-runner
 
 stages:
+  - test
   - build
   - push
 
 variables:
   DOCKER_DRIVER: overlay2
   REGISTRY: myreg.example.ir
+
+test_vote:
+  image: python:3.11
+  stage: test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/requirements.txt
+        - vote/pyproject.toml
+        - vote/setup.py
+      when: always
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/requirements.txt
+        - vote/pyproject.toml
+        - vote/setup.py
+      when: always
+    - when: never
+  script:
+    - cd vote
+    - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - if [ -f pyproject.toml ]; then pip install .; fi
+    - pytest -q
+
+# vote - SonarQube analysis
+sonar_vote:
+  image: sonarsource/sonar-scanner-cli:latest
+  stage: test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/**
+      when: always
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/**
+      when: always
+    - when: never
+  script:
+    - cd vote
+    - sonar-scanner -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.sources=. -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
+
+# vote - Trivy (filesystem scan)
+trivy_vote:
+  image: aquasec/trivy:latest
+  stage: test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "development" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/**
+      when: always
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - vote/**/*
+      exists:
+        - vote/**
+      when: always
+    - when: never
+  script:
+    - trivy fs --exit-code 1 --severity HIGH,CRITICAL --no-progress ./vote || true
+    # NOTE: exit-code 1 on findings; the "|| true" prevents job crash if you prefer non-blocking scan.
 
 build_vote:
   stage: build
