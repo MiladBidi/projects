@@ -186,6 +186,23 @@ helm repo add my-charts https://charts.mycompany.com
 helm push ./packages/result-0.1.0.tgz my-charts
 ```
 
+
+Let’s take a step-by-step look at exactly what this Helm template does when executed and what each line means. \
+The `helm/charts/db/templates/db.yaml` file creates two Kubernetes objects: 
+* a Deployment for PostgreSQL and
+* a Service to access it.
+
+<img width="855" height="810" alt="image" src="https://github.com/user-attachments/assets/0db02702-c708-4d73-9874-4be206d5c644" />
+
+
+The braces `{{ ... }}` are helm variables and are filled with `values.yaml` (or --set):
+* `.Values.replicaCount` → number of pods
+* `.Values.image.repository`, `.Values.image.tag`, `.Values.image.pullPolicy` → postgres image
+* `.Values.service.port` → Postgres port (usually 5432)
+* `.Values.service.type` → service type (default ClusterIP)
+* `.Values.env.POSTGRES_USER`, `.Values.env.POSTGRES_PASSWORD` → user and password for postgresql database
+When you run `helm install` or `helm upgrade`, this file is converted to the final YAML and sent to the Kubernetes server API.
+
 ### Kustomize
 
 Kustomize is a Kubernetes-native configuration management tool that allows you to customize Kubernetes YAML manifests without modifying the original files. Instead of maintaining separate manifest copies for each environment (development, staging, production), Kustomize enables you to define a common base and apply overlays (environment-specific adjustments) on top of it.
@@ -218,27 +235,7 @@ This approach keeps your environment configuration organized, repeatable, and Gi
 * ArgoCD can point directly to k8s-specifications/dev or k8s-specifications/prod.
 * ArgoCD will run Kustomize automatically, apply the Helm charts with your values, and sync the resources.
 
-### Helm charts
-
-Let’s take a step-by-step look at exactly what this Helm template does when executed and what each line means. \
-The `helm/charts/db/templates/db.yaml` file creates two Kubernetes objects: 
-* a Deployment for PostgreSQL and
-* a Service to access it.
-
-<img width="855" height="810" alt="image" src="https://github.com/user-attachments/assets/0db02702-c708-4d73-9874-4be206d5c644" />
-
-
-The braces {{ ... }} are helm variables and are filled with `values.yaml` (or --set):
-* `.Values.replicaCount` → number of pods
-* `.Values.image.repository`, `.Values.image.tag`, `.Values.image.pullPolicy` → postgres image
-* `.Values.service.port` → Postgres port (usually 5432)
-* `.Values.service.type` → service type (default ClusterIP)
-* `.Values.env.POSTGRES_USER`, `.Values.env.POSTGRES_PASSWORD` → user and password for postgresql database
-When you run `helm install` or `helm upgrade`, this file is converted to the final YAML and sent to the Kubernetes server API.
-
-### Kustomize
-
-✅ Kustomize ⇒ A way to reuse manifests between different environments
+Kustomize ⇒ A way to reuse manifests between different environments
 ```
 helmCharts:
   - name: db
@@ -248,7 +245,7 @@ helmCharts:
 This means:\
 "Use this Helm Chart, create actual Kubernetes files with these values ​​(values-db.yaml)."
 
-❗❗❗ valuesFile → a YAML file next to kustomization.yaml 
+valuesFile → a YAML file next to kustomization.yaml 
 That means values-db.yaml should be here:
 ```
 k8s-specifications/prod/
