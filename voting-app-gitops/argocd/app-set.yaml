@@ -8,11 +8,11 @@ spec:
     - list:
         elements:
           - env: dev
-            path: k8s-specifications/dev
+            path: voting-app-gitops/k8s-specifications/dev
             server: https://kubernetes.default.svc
             namespace: voting-dev
           - env: prod
-            path: k8s-specifications/prod
+            path: voting-app-gitops/k8s-specifications/prod
             server: https://10.20.20.31:6443
             namespace: voting-prod
 
@@ -22,7 +22,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://git.rahbia.iamsre.ir/iamsre/voting-app.git
+        repoURL: https://github.com/MiladBidi/projects.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
