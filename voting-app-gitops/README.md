@@ -34,6 +34,29 @@ https://github.com/dockersamples/example-voting-app
   * Build image
   * Push image into registry
 
+#### Pipeline description   
+
+workflow rules:\
+We specified when the pipeline will be executed in general:
+
+* ❌ If you are on the feature branch and have not given a Merge Request (MR) → nothing will be done.
+* ✅ If you have a MR to development branch → the pipeline will be executed.
+* ✅ If you have a MR to main branch → the pipeline will be executed.
+* Otherwise → nothing will be executed.
+
+That is, CI will be activated only when you have MR to `dev` or `main`.
+
+### Build Stage
+
+Example: build_vote
+
+A Docker image is built for the vote service
+
+It is only executed when the files in vote/**/* have changed and MR is `dev` or `main` → .
+
+The same logic applies to result and worker.
+👉 This means that only the service that has changed is built, not all services.
+
 #### Test Stage Overview
 
 Our CI/CD pipeline includes automated tests and code quality checks that run before building and pushing Docker images. These steps help us ensure that the code is correct, maintainable, and secure.
@@ -195,41 +218,6 @@ This approach keeps your environment configuration organized, repeatable, and Gi
 * ArgoCD can point directly to k8s-specifications/dev or k8s-specifications/prod.
 * ArgoCD will run Kustomize automatically, apply the Helm charts with your values, and sync the resources.
 
-### GitOps
-  * ArgoCD does not perform Build task.
-  * ArgoCD also does not perform the Tagging task.
-  * ArgoCD just looks at what version is written in Git and deploys that.
-  * CI should update `tag` value in these files: `values-vote.yaml` or `values-result.yaml`
-  * Why do we change these, and not that `helm/charts/vote/values.yaml`?
-  * Because ArgoCD is already looking at the path `k8s-specifications/dev/` (according to ApplicationSet).
-  * If we change this → ArgoCD syncs → deployment is updated.
-  * Image Updater do these changes
-
-
-### Pipeline description   
-
-workflow rules:\
-We specified when the pipeline will be executed in general:
-
-* ❌ If you are on the feature branch and have not given a Merge Request (MR) → nothing will be done.
-* ✅ If you have a MR to development branch → the pipeline will be executed.
-* ✅ If you have a MR to main branch → the pipeline will be executed.
-* Otherwise → nothing will be executed.
-
-That is, CI will be activated only when you have MR to `dev` or `main`.
-
-### Build Stage
-
-Example: build_vote
-
-A Docker image is built for the vote service
-
-It is only executed when the files in vote/**/* have changed and MR is `dev` or `main` → .
-
-The same logic applies to result and worker.
-👉 This means that only the service that has changed is built, not all services.
-
-
 ### Helm charts
 
 Let’s take a step-by-step look at exactly what this Helm template does when executed and what each line means. \
@@ -282,7 +270,58 @@ k8s-specifications/prod/
 └── values-worker.yaml
 ```
 
-### ArgoCD ApplicationSet
+### ArgoCD and GitOps
+
+This repository uses Argo CD and its ApplicationSet feature to manage Kubernetes deployments using the GitOps approach.
+
+What is GitOps?
+
+GitOps means treating Git as the single source of truth for your infrastructure and application configuration.
+
+Instead of manually applying YAML files to Kubernetes, you store them in a Git repository.
+
+Argo CD continuously watches the repository and makes sure the Kubernetes cluster matches what’s defined in Git.
+
+  * ArgoCD does not perform Build task.
+  * ArgoCD also does not perform the Tagging task.
+  * ArgoCD just looks at what version is written in Git and deploys that.
+  * CI should update `tag` value in these files: `values-vote.yaml` or `values-result.yaml`
+  * Why do we change these, and not that `helm/charts/vote/values.yaml`?
+  * Because ArgoCD is already looking at the path `k8s-specifications/dev/` (according to ApplicationSet).
+  * If we change this → ArgoCD syncs → deployment is updated.
+  * Image Updater do these changes
+
+What is an ApplicationSet?
+* Normally, Argo CD manages one application per configuration file.
+* The ApplicationSet controller makes it possible to define multiple applications at once in a single template.
+* This is very useful when you want to deploy the same app into multiple environments (e.g., dev, prod) with just one configuration.
+
+#### How This ApplicationSet Works
+
+In our case, the ApplicationSet is named voting-environments. It defines how to deploy the Voting App into both `development` and `production` environments.
+
+Generators
+
+The generator section lists environments (dev, prod) along with their:
+- path: Where the Kubernetes YAML manifests are stored in the Git repo
+- server: The Kubernetes cluster API address
+- namespace: The target namespace in the cluster
+
+Template
+- The template tells Argo CD how to create each application.
+- It uses placeholders like `{{env}}`, `{{path}}`, and `{{namespace}}` that get replaced for each environment defined in the generator.
+
+For example:
+
+dev-voting-app → points to the dev manifests and deploys into the voting-dev namespace.
+
+prod-voting-app → points to the prod manifests and deploys into the voting-prod namespace.
+
+Sync Policy
+
+automated: {} means Argo CD will automatically apply changes from Git to the cluster without requiring manual approval.
+
+This ensures both clusters stay continuously in sync with the repository.
 
 ArgoCD reads this ApplicationSet.
 Here we have two environments:\
