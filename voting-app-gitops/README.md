@@ -52,10 +52,11 @@ Example: build_vote
 
 A Docker image is built for the vote service
 
-It is only executed when the files in vote/**/* have changed and MR is `dev` or `main` → .
+It only executed when the files in `vote/**/*` have changed and MR is on `dev` or `main`
 
 The same logic applies to result and worker.
-👉 This means that only the service that has changed is built, not all services.
+
+This means that only the service that has changed is built, not all services.
 
 #### Test Stage Overview
 
