@@ -61,29 +61,22 @@ Our CI/CD pipeline includes automated tests and code quality checks that run bef
 
 1 - test_vote (Python Unit Tests)
 
-Runs automated unit tests for the vote service.
-
-Installs the service’s dependencies (from requirements.txt or pyproject.toml).
-
-Executes tests using `pytest` . Unit tests verify that small pieces of code (functions, modules) work as expected. This prevents bugs from going into production.
+* Runs automated unit tests for the vote service.
+* Installs the service’s dependencies (from requirements.txt or pyproject.toml).
+* Executes tests using `pytest` . Unit tests verify that small pieces of code (functions, modules) work as expected. This prevents bugs from going into production.
 
 2 - sonar_vote (Static Code Analysis with SonarQube)
 
-Analyzes the Python source code in the vote service.
-
-Reports on code quality issues, bugs, security hotspots, and maintainability concerns.
-
-SonarQube ensures the code follows good practices, is easy to maintain, and is free of common vulnerabilities. It’s like a spell-checker, but for code quality and security.
+* Analyzes the Python source code in the vote service.
+* Reports on code quality issues, bugs, security hotspots, and maintainability concerns.
+* SonarQube ensures the code follows good practices, is easy to maintain, and is free of common vulnerabilities. It’s like a spell-checker, but for code quality and security.
 
 3 - trivy_vote (Security Scan with Trivy)
 
-Scans the vote service for known vulnerabilities. Uses Trivy to scan the project’s files and dependencies.
-
-Looks for vulnerabilities with High or Critical severity.
-
-If vulnerabilities are found, they are reported so developers can fix them.
-
-Trivy helps protect the service against security threats by detecting outdated or insecure libraries early in the development process.
+* Scans the vote service for known vulnerabilities. Uses Trivy to scan the project’s files and dependencies.
+* Looks for vulnerabilities with High or Critical severity.
+* If vulnerabilities are found, they are reported so developers can fix them.
+* Trivy helps protect the service against security threats by detecting outdated or insecure libraries early in the development process.
 
 #### Why Run These Tests Before Build?
 
